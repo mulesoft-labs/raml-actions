@@ -1,0 +1,12 @@
+/node_modules
+/typings
+
+/src/**/*.js
+/src/**/*.js.map
+/src/**/*.d.ts
+
+*.iml
+.project
+.settings
+
+/dist/
