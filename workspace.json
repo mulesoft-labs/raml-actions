@@ -1,5 +1,5 @@
 {
-  "https://github.com/mulesoft/raml-actions" : {
+  "raml-actions" : {
     "build" : "npm run build",
     "test" : "npm run test",
     "gitUrl" : "https://github.com/mulesoft/raml-actions.git",
