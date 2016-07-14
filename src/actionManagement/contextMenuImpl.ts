@@ -3,6 +3,8 @@
 import _ = require("underscore")
 
 import contextMenu = require("./contextMenu")
+import contextActions = require("./contextActions")
+import contextActionsImpl = require("./contextActionsImpl")
 
 var contributors: { [s: string]: contextMenu.IContextMenuContributor; } = {};
 
@@ -151,4 +153,48 @@ function addItemsTreeNode(roots : ContextMenuItemNode[], item : contextMenu.ICon
     leafNode = new ContextMenuItemNode(item)
 
     currentList.push(leafNode)
+}
+
+var actionBasedMenuInitialized = false;
+
+/**
+ * Initializes and registers standard context menu contributor, based on currently available context actions.
+ * @param selector - CSS selector, can be null if not used in the display.
+ */
+export function initializeActionBasedMenu(selector? : string) {
+    var editorContextMenuContributor : contextMenu.IContextMenuContributor = {
+
+        id : "editorContextActionContributor",
+
+
+        calculateItems : function () {
+            var currentActions = contextActionsImpl.calculateCurrentActions(
+                contextActions.TARGET_RAML_EDITOR_NODE)
+
+            if (!currentActions) return []
+
+            var result : contextMenu.IContextMenuItem[] = []
+
+            currentActions.forEach(action => {
+                result.push({
+
+                    selector : selector,
+
+                    name : action.label ? action.label : action.name,
+
+                    categories : action.category,
+
+                    onClick: action.onClick,
+
+                    children: []
+                })
+            })
+
+            return result
+        }
+
+    }
+
+    registerContributor(editorContextMenuContributor)
+    actionBasedMenuInitialized = true;
 }

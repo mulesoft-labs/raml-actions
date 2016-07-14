@@ -4,9 +4,20 @@ import sharedStateCalculator = require("./actionManagement/sharedASTStateCalcula
 import contextMenu = require("./actionManagement/contextMenu")
 import contextMenuImpl = require("./actionManagement/contextMenuImpl")
 import actionInitializer = require("./actions/actionInitializer")
+
+/**
+ * Actions that requires user input (UI).
+ */
 export import uiActions = require("./actions/uiActions")
 
+/**
+ * Actions, which do not require user input and use only the context state.
+ */
 export import standardActions = require("./actions/standardActions")
+
+/**
+ * Reexport of raml-1-parser
+ */
 export import parser = sharedStateCalculator.parser
 
 /**
@@ -250,6 +261,14 @@ export function calculateMenuItemsTree() : IContextMenuItem[] {
 /**
  * Initializes standard (non-UI) actions
  */
-export function intializeStandardActions() {
+export function intializeStandardActions() : void {
     actionInitializer.intializeStandardActions();
+}
+
+/**
+ * Initializes and registers standard context menu contributor, based on currently available context actions.
+ * @param selector - CSS selector, can be null if not used in the display.
+ */
+export function initializeActionBasedMenu(selector? : string) : void {
+    contextMenuImpl.initializeActionBasedMenu(selector);
 }
