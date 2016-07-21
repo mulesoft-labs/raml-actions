@@ -107,12 +107,51 @@ var moveContents : contextActions.IContextDependedAction = {
         var destination = uiState;
         var node = contextState;
 
-
         var d = path.resolve(path.dirname(currentFilePath), destination);
+
+        var replacements = [];
+
         var dump = node.lowLevel().dump();
+        
+        findIncludesInside(node.lowLevel()).forEach(include => {
+            var includePath = include.includePath();
+
+            if(path.isAbsolute(includePath)) {
+                return;
+            }
+            
+            var includeStart = include.start() - node.lowLevel().start();
+            var includeEnd = include.end() - node.lowLevel().start();
+            
+            replacements.push({
+                start: includeStart,
+                end: includeEnd,
+                oldText: dump.substring(includeStart, includeEnd),
+                oldPath: includePath,
+                newPath:  path.relative(path.dirname(d), path.resolve(path.dirname(currentFilePath), includePath))
+            })
+        });
+        
+        var startIndex = 0;
+        
+        var splitted = [];
+        
+        replacements.forEach(replacement => {
+            splitted.push(dump.substring(startIndex, replacement.start));
+            
+            splitted.push(dump.substring(replacement.start, replacement.end).replace(replacement.oldPath, replacement.newPath));
+
+            startIndex = replacement.end;
+        });
+        
+        splitted.push(dump.substring(startIndex));
+        
+        dump = splitted.join('');
 
         var ci = utils.splitOnLines(dump);
+
         var li = ci.length > 1 ? indent(ci[1]) : indent(ci[0]);
+
         dump = dump.substring(node.lowLevel().keyEnd() - node.lowLevel().start() + 1).trim();
         dump = stripIndent(dump, li);
 
@@ -132,6 +171,42 @@ var moveContents : contextActions.IContextDependedAction = {
     stateCalculator: moveContentsStateCalculator,
 
     shouldDisplay: state=>state != null
+}
+
+function findIncludesInside(node: lowLevel.ILowLevelASTNode): lowLevel.ILowLevelASTNode[] {
+    var children: lowLevel.ILowLevelASTNode[] = node.children();
+    
+    var result = [];
+    
+    if(children && children.length > 0) {
+        children.forEach(child => {
+            if(child.includePath()) {
+                result.push(child);
+                
+                return;
+            }
+            
+            result = result.concat(findIncludesInside(child));
+        });
+    }
+    
+    return result;
+}
+
+function isAbsolute(location: string): boolean {
+    if(!location) {
+        return false;
+    }
+
+    if(path.isAbsolute(location)) {
+        return true;
+    }
+
+    if(location.trim().toLowerCase().indexOf('http:/') === 0) {
+        return true;
+    }
+
+    return false;
 }
 
 export interface MoveContentsDisplayUI extends contextActions.IUIDisplay {
