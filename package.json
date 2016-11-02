@@ -1,6 +1,6 @@
 {
   "name": "raml-actions",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "main": "dist/index.js",
   "scripts": {
     "build": "rimraf dist && tsc",
@@ -12,7 +12,7 @@
   "dependencies": {
     "underscore": "^1.8.3",
     "raml-1-parser": "1.1.7",
-    "raml-suggestions": "0.0.23"
+    "raml-suggestions": "0.0.24"
   },
   "typings":"dist/index.d.ts",
   "repository": {
