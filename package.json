@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "underscore": "^1.8.3",
-    "raml-1-parser": "1.1.8",
+    "raml-1-parser": "1.1.11",
     "raml-suggestions": "0.0.24"
   },
   "typings":"dist/index.d.ts",
