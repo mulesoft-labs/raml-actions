@@ -22,7 +22,7 @@ export function basename(pathStr:string) {
 }
 
 export function extname(pathStr:string) {
-    return path.extname(pathStr)
+    return path.extname(pathStr || '')
 }
 
 export function splitOnLines(text:string):string[]{
