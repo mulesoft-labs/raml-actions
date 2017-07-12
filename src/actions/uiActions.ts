@@ -369,13 +369,13 @@ var completeBody = {
             }
         } else {
             //RAML 1.0 case
-            var response = contextState;
-            if (!universeHelpers.isResponseType(response.property().range())) {
-                console.log("Incorrect parent " + response.printDetails() + " , expecting response")
+            var responseOrMethod = contextState;
+            if (!(universeHelpers.isResponseType(responseOrMethod.property().range()) || universeHelpers.isMethodType(responseOrMethod.property().range()))) {
+                console.log("Incorrect parent " + responseOrMethod.printDetails() + " , expecting response or method")
                 return;
             }
 
-            var responseWrapper = <wrapper.Response>response.wrapperNode();
+            var responseWrapper = <wrapper.Response>responseOrMethod.wrapperNode();
 
             var bodies: wrapper.TypeDeclaration[] = [];
 
