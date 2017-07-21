@@ -177,6 +177,42 @@ export type IASTProvider = sharedStateCalculator.IASTProvider
 export type IASTModifier = sharedStateCalculator.IASTModifier
 
 /**
+ * Converts external UI display into local UI display synchronized with external display.
+ */
+export type IExternalUIDisplayExecutor = contextActions.IExternalUIDisplayExecutor;
+
+/**
+ * Is called when user activates action to display UI externally.
+ * Should return JS code to execute externally.
+ *
+ * The code Recieves initial UI state, which is previously converted from context state,
+ * or context state directly if no convertor is specified,
+ * returns promise providing final ui state, for action to proceed its execution
+ *
+ */
+export type IExternalUIDisplay = contextActions.IExternalUIDisplay;
+
+/**
+ * Range in the document.
+ */
+export type ITextEditRange = contextActions.ITextEditRange;
+
+/**
+ * Text edit.
+ */
+export type ITextEdit = contextActions.ITextEdit;
+
+/**
+ * Set of text edits for the document
+ */
+export type IDocumentEdit = contextActions.IChangedDocument;
+
+/**
+ * Performs document changes.
+ */
+export type IDocumentChangeExecutor = contextActions.IDocumentChangeExecutor;
+
+/**
  * Intended for subclassing version of GeneralASTStateCalculator
  * Override calculate() method, use getGeneralState() to obtain current general AST state.
  *
@@ -271,4 +307,23 @@ export function intializeStandardActions() : void {
  */
 export function initializeActionBasedMenu(selector? : string) : void {
     contextMenuImpl.initializeActionBasedMenu(selector);
+}
+
+
+/**
+ * Sets default external ui display executor. Must be set before any of IExternalUIDisplay actions
+ * can be executed.
+ * @param executor
+ */
+export function setExternalUIDisplayExecutor(executor: IExternalUIDisplayExecutor) {
+    contextActionsImpl.setExternalUIDisplayExecutor(executor);
+}
+
+/**
+ * Sets default external ui display executor. Must be set before any of IExternalUIDisplay actions
+ * can be executed.
+ * @param executor
+ */
+export function setDocumentChangeExecutor(executor: contextActions.IDocumentChangeExecutor) {
+    contextActionsImpl.setDocumentChangeExecutor(executor);
 }

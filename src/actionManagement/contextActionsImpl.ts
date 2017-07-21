@@ -19,6 +19,37 @@ export function addAction(action : contextActions.IContextDependedAction) {
     actions.push(action)
 }
 
+var _externalExecutor : contextActions.IExternalUIDisplayExecutor = null;
+
+/**
+ * Sets default external ui display executor. Must be set before any of IExternalUIDisplay actions
+ * can be executed.
+ * @param executor
+ */
+export function setExternalUIDisplayExecutor(executor: contextActions.IExternalUIDisplayExecutor) {
+    _externalExecutor = executor;
+}
+
+var _documentChangeExecutor: contextActions.IDocumentChangeExecutor = null;
+
+/**
+ * Sets default external ui display executor. Must be set before any of IExternalUIDisplay actions
+ * can be executed.
+ * @param executor
+ */
+export function setDocumentChangeExecutor(executor: contextActions.IDocumentChangeExecutor) {
+    _documentChangeExecutor = executor;
+}
+
+/**
+ * Sets default external ui display executor. Must be set before any of IExternalUIDisplay actions
+ * can be executed.
+ * @param executor
+ */
+export function getDocumentChangeExecutor(executor: contextActions.IDocumentChangeExecutor) {
+    _documentChangeExecutor = executor;
+}
+
 /**
  * Shortcut for adding simple actions. Not recommended, use addAction() instead to
  * provide state calculator.
@@ -82,16 +113,27 @@ class ExecutableAction implements contextActions.IExecutableAction {
 
             if (instanceofUIAction(targetAction)) {
 
-                //for ui actions first looking into context state -> initial ui state conersion
+                //for ui actions first looking into context state -> initial ui state conversion
                 var initialUIState = this.state;
                 if (targetAction.initialUIStateConvertor)
                     initialUIState = targetAction.initialUIStateConvertor(initialUIState);
 
                 //then calling UI with original action onClick as a callback
-                targetAction.displayUI((finalUIState)=>{
+                let display = targetAction.displayUI;
+                if (contextActions.isUIDisplay(display)) {
+                    display(initialUIState).then(finalUIState=>{
 
-                    this.originalAction.onClick(this.state, finalUIState)
-                },initialUIState)
+                        this.originalAction.onClick(this.state, finalUIState)
+                    })
+                } else if (_externalExecutor && contextActions.isExternalUIDisplay(display)) {
+                    let externalDisplay = _externalExecutor(display);
+                    if (externalDisplay) {
+                        externalDisplay(initialUIState).then(finalUIState=>{
+
+                            this.originalAction.onClick(this.state, finalUIState)
+                        })
+                    }
+                }
 
             } else {
                 //for standard actions simply calling onclick immediatelly

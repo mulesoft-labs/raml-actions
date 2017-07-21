@@ -113,14 +113,53 @@ export interface IStateConvertor {
  * Recieves initial UI state, which is previously converted from context state,
  * or context state directly if no convertor is specified.
  *
- * When finished, should call uiFinishedCallback providing final ui state, for action to proceed its execution
+ * Returns promise providing final ui state, for action to proceed its execution
  */
 export interface IUIDisplay {
     /**
-     * Method, which input is an initial ui state, and which should call uiFinishedCallback when done.
+     * Method, which input is an initial ui state.
      * @param initialUIState - initial UI state for UI to operate with.
+     * @return promise resolving into the final UI state.
      */
-    (uiFinishedCallback : (uiState:any)=>void, initialUIState? : any ) : void;
+    (initialUIState? : any ) : Promise<any>;
+}
+
+/**
+ * Is called when user activates action to display UI externally.
+ * Should return JS code to execute externally.
+ *
+ * The code Recieves initial UI state, which is previously converted from context state,
+ * or context state directly if no convertor is specified,
+ * returns promise providing final ui state, for action to proceed its execution
+ *
+ */
+export interface IExternalUIDisplay {
+
+    /**
+     * Creates UI JavaScript code. The code will be evaluated externally,
+     * and should accept initial ui state and return final UI state, which will be transferred
+     * to the action's onClick
+     * @param initialUIState
+     */
+    createUICode(initialUIState? : any ) : string
+}
+
+/**
+ * Type guard to differentiate IUIDisplay and IEvaluateUIDisplay instances.
+ * @param display
+ * @return {boolean}
+ */
+export function isUIDisplay(display: IUIDisplay | IExternalUIDisplay) : display is IUIDisplay {
+    return !isExternalUIDisplay(display);
+}
+
+/**
+ * Type guard to differentiate IUIDisplay and IEvaluateUIDisplay instances.
+ * @param display
+ * @return {(initialUIState?:any)=>string}
+ */
+export function isExternalUIDisplay(display: IUIDisplay | IExternalUIDisplay) : display is IExternalUIDisplay {
+    return (<any>display).createUICode && typeof (<any>display).createUICode == "function";
 }
 
 /**
@@ -147,11 +186,22 @@ export interface IContextDependedUIAction extends IContextDependedAction{
 
     /**
      * Should display the UI and return the user state, being then passed to
-     * the onClick method along with context state.
+     * the onClick method along with context state in case of IUIDisplay.
+     *
+     * In case of IExternalUIDisplay, UI code provided by calling of createUICode is then
+     * transferred and executed externally IExternalUIDisplayExecutor.
+     *
      * In case of client-server environment this method is responsible to communication,
      * the execution result is often JSON object.
      */
-    displayUI : IUIDisplay;
+    displayUI : IUIDisplay | IExternalUIDisplay;
+}
+
+/**
+ * Converts external UI display into local UI display synchronized with external display.
+ */
+export interface IExternalUIDisplayExecutor {
+    (externalDisplay : IExternalUIDisplay) : IUIDisplay;
 }
 
 /**
@@ -187,4 +237,70 @@ export interface IExecutableAction {
      * Optional label, will be used instead of name for display purpose
      */
     label? : string
+}
+
+/**
+ * Range in the document.
+ */
+export interface ITextEditRange {
+
+    /**
+     * Range start position, counting from 0
+     */
+    start: number
+
+    /**
+     * Range end position, counting from 0
+     */
+    end: number
+}
+
+/**
+ * Text edit.
+ */
+export interface ITextEdit {
+    /**
+     * Range to replace. Range start==end==0 => insert into the beginning of the document,
+     * start==end==document end => insert into the end of the document
+     */
+    range : ITextEditRange,
+
+    /**
+     * Text to replace given range with.
+     */
+    text: string
+}
+
+/**
+ * Set of text edits for the document
+ */
+export interface IChangedDocument {
+    /**
+     * Document URI
+     */
+    uri: string;
+
+    /**
+     * Document content
+     */
+    text?: string;
+
+    /**
+     * Optional set of text edits instead of complete text replacement.
+     * Is only taken into account if text is null.
+     */
+    textEdits? : ITextEdit[];
+}
+
+/**
+ * Performs document changes.
+ */
+export interface IDocumentChangeExecutor {
+
+    /**
+     * Changes the document.
+     * @param change
+     * @return promise resolving when the change is executed.
+     */
+    changeDocument(change: IChangedDocument) : Promise<void>;
 }
