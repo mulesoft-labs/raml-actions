@@ -50,6 +50,8 @@ export interface IActionVisibilityFilter {
  */
 export interface IContextDependedAction {
 
+    id: string
+
     /**
      * Displayed menu item name
      */
@@ -208,6 +210,11 @@ export interface IExternalUIDisplayExecutor {
  * Actions are being exposed as this outer interface.
  */
 export interface IExecutableAction {
+
+    /**
+     * Unique action ID.
+     */
+    id: string
 
     /**
      * Displayed menu item name

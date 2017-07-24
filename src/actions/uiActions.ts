@@ -23,6 +23,8 @@ function standardToUIAction(original : contextActions.IContextDependedAction,
     displayUI : contextActions.IUIDisplay) : contextActions.IContextDependedUIAction{
 
     return {
+        id: original.id,
+
         name: original.name,
 
         target: original.target,
@@ -94,6 +96,8 @@ class MoveContentStateCalculator extends sharedCalculator.CommonASTStateCalculat
 var moveContentsStateCalculator = new MoveContentStateCalculator();
 
 var moveContents : contextActions.IContextDependedAction = {
+    id: "moveContents",
+
     name: "Move content to other file",
 
     target: contextActions.TARGET_RAML_EDITOR_NODE,
@@ -321,6 +325,8 @@ export interface ICompleteBodyUIState {
 }
 
 var completeBody = {
+    id: "completeBody",
+
     name: "Complete body",
         target: contextActions.TARGET_RAML_EDITOR_NODE,
     category: ["Add new..."],

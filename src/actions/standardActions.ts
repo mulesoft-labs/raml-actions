@@ -127,6 +127,7 @@ function doDeleteNode(node: hl.IParseResult, modifier?:sharedCalculator.IASTModi
 
 var expandTypeToJSONSchemaDefinitionCalculator = new ConvertTypeToJsonSchemaAtTypeStateCalculator();
 export var expandTypeToJSONSchemaDefinition : contextActions.IContextDependedAction = {
+    id: "expandTypeToJSONSchemaDefinition",
     name: "Expand type to JSON schema definition",
     target: contextActions.TARGET_RAML_EDITOR_NODE,
     category: ["Refactoring"],
@@ -159,6 +160,7 @@ export var expandTypeToJSONSchemaDefinition : contextActions.IContextDependedAct
 
 var deleteNodeStateCalculator = new DeleteCurrentNodeStateCalculator();
 export var deleteNode : contextActions.IContextDependedAction = {
+    id: "deleteNode",
     name : "Delete current node",
     target : contextActions.TARGET_RAML_EDITOR_NODE,
     category : ["Code"],
@@ -172,6 +174,7 @@ export var deleteNode : contextActions.IContextDependedAction = {
 
 var expandTypeToJSONSchemaCalculator = new ConvertTypeToJsonSchemaStateCalculator();
 export var expandTypeToJSONSchema : contextActions.IContextDependedAction = {
+    id: "expandTypeToJSONSchema",
     name: "Expand type to JSON schema",
     target: contextActions.TARGET_RAML_EDITOR_NODE,
     category: ["Refactoring"],
@@ -201,6 +204,7 @@ export var expandTypeToJSONSchema : contextActions.IContextDependedAction = {
  * Action, which comments out the current high-level node (not attribute!).
  */
 export var commentNode : contextActions.IContextDependedAction = {
+    id: "commentNode",
 
     name: "Comment node",
 

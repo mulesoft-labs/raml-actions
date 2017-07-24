@@ -327,3 +327,15 @@ export function setExternalUIDisplayExecutor(executor: IExternalUIDisplayExecuto
 export function setDocumentChangeExecutor(executor: contextActions.IDocumentChangeExecutor) {
     contextActionsImpl.setDocumentChangeExecutor(executor);
 }
+
+/**
+ * Executes action by ID.
+ * Actions are still being filtered by the context, so no invalid actions will be executed.
+ *
+ * If several actions matches by ID, any one will be executed.
+ *
+ * @param actionId
+ */
+export function executeAction(actionId: string) : void {
+    contextActionsImpl.executeAction(actionId);
+}

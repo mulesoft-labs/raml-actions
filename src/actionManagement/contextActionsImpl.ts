@@ -65,6 +65,7 @@ export function addSimpleAction(name : string, category : string[],
                                 target : string, onClick : contextActions.IActionItemCallback,
                                 shouldDisplay? : contextActions.IActionVisibilityFilter)  {
     var newAction : contextActions.IContextDependedAction = {
+        id: name,
         name : name,
         target: target,
         onClick : onClick,
@@ -80,6 +81,8 @@ export function instanceofUIAction(action : contextActions.IContextDependedActio
 }
 
 class ExecutableAction implements contextActions.IExecutableAction {
+
+    id: string
 
     name : string
 
@@ -97,6 +100,9 @@ class ExecutableAction implements contextActions.IExecutableAction {
 
 
     constructor(targetAction : contextActions.IContextDependedAction, state : any) {
+
+        this.id = targetAction.id;
+
         this.name = targetAction.name
 
         this.category = targetAction.category
@@ -218,6 +224,65 @@ export function getCategorizedActionLabel(action : contextActions.IExecutableAct
     result = result + action.name
 
     return result
+}
+
+/**
+ * Executes action by ID.
+ * Actions are still being filtered by the context, so no invalid actions will be executed.
+ *
+ * If several actions matches by ID, any one will be executed.
+ *
+ * @param actionId
+ */
+export function executeAction(actionId: string) : void {
+    var result : contextActions.IExecutableAction[] = []
+
+    try {
+        var filteredActions = actions.filter(action => {
+            return action.id == actionId
+        })
+
+        filteredActions.forEach(action => {
+            if (action.stateCalculator) {
+                if (action.stateCalculator.contextCalculationStarted) {
+                    try {
+                        action.stateCalculator.contextCalculationStarted()
+                    } catch (Error){console.error(Error.message)}
+                }
+            }
+        })
+
+        filteredActions.forEach(action => {
+            try {
+                var state:any = null;
+                if (action.stateCalculator) {
+                    state = action.stateCalculator.calculate();
+                }
+
+                if (action.shouldDisplay) {
+                    if (!action.shouldDisplay(state)) {
+                        return
+                    }
+                }
+
+                result.push(new ExecutableAction(action, state))
+            } catch (Error){console.error(Error.message)}
+        })
+
+        filteredActions.forEach(action => {
+            if (action.stateCalculator) {
+                if (action.stateCalculator.contextCalculationFinished) {
+                    try {
+                        action.stateCalculator.contextCalculationFinished()
+                    } catch (Error){console.error(Error.message)}
+                }
+            }
+        })
+    } catch (Error){console.error(Error.message)}
+
+    if (result.length > 0) {
+        result[0].onClick();
+    }
 }
 
 /**
