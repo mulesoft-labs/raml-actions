@@ -339,3 +339,12 @@ export function setDocumentChangeExecutor(executor: contextActions.IDocumentChan
 export function executeAction(actionId: string) : void {
     contextActionsImpl.executeAction(actionId);
 }
+
+/**
+ * Finds executable action by ID.
+ * @param actionId
+ * @return {any}
+ */
+export function findActionById(actionId: string) : contextActions.IExecutableAction {
+    return contextActionsImpl.findActionById(actionId);
+}

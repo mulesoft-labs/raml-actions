@@ -227,14 +227,11 @@ export function getCategorizedActionLabel(action : contextActions.IExecutableAct
 }
 
 /**
- * Executes action by ID.
- * Actions are still being filtered by the context, so no invalid actions will be executed.
- *
- * If several actions matches by ID, any one will be executed.
- *
+ * Finds executable action by ID.
  * @param actionId
+ * @return {any}
  */
-export function executeAction(actionId: string) : void {
+export function findActionById(actionId: string) : contextActions.IExecutableAction {
     var result : contextActions.IExecutableAction[] = []
 
     try {
@@ -281,8 +278,25 @@ export function executeAction(actionId: string) : void {
     } catch (Error){console.error(Error.message)}
 
     if (result.length > 0) {
-        result[0].onClick();
+        return result[0];
     }
+
+    return null;
+}
+
+/**
+ * Executes action by ID.
+ * Actions are still being filtered by the context, so no invalid actions will be executed.
+ *
+ * If several actions matches by ID, any one will be executed.
+ *
+ * @param actionId
+ */
+export function executeAction(actionId: string) : void {
+
+    let action = findActionById(actionId);
+
+    if (action) action.onClick();
 }
 
 /**
