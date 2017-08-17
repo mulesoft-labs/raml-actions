@@ -200,6 +200,14 @@ export interface IContextDependedUIAction extends IContextDependedAction{
 }
 
 /**
+ * Instanceof for IContextDependedUIAction
+ * @param action
+ */
+export function isUIAction(action : IContextDependedAction) : action is IContextDependedUIAction {
+    return (<IContextDependedUIAction>action).displayUI != null;
+}
+
+/**
  * Converts external UI display into local UI display synchronized with external display.
  */
 export interface IExternalUIDisplayExecutor {

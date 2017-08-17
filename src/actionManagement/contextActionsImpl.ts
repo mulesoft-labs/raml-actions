@@ -149,17 +149,26 @@ class ExecutableAction implements contextActions.IExecutableAction {
     }
 }
 
-/**
- * Used by consumers to determine the actions to execute
- */
-export function calculateCurrentActions(target : string) : contextActions.IExecutableAction[] {
+function filterActionsByState(actionsToFilter: contextActions.IContextDependedAction[])
+    : contextActions.IContextDependedAction[] {
 
-    var result : contextActions.IExecutableAction[] = []
+    var result : contextActions.IExecutableAction[] = [];
 
     try {
-        var filteredActions = actions.filter(action => {
-            return action.target == target
-        })
+        var filteredActions = actionsToFilter.filter(action=>{
+
+            if (contextActions.isUIAction(action)) {
+
+                //if action requires UI, we need to check whether remote UI executor is set up
+                //If executor is not set, we only provide actions, which UI can be executed locally.
+                //If executor is set, we provide actions, which can be executed remotelly
+                return (_externalExecutor && contextActions.isExternalUIDisplay(action.displayUI))
+                    || (!_externalExecutor && contextActions.isUIDisplay(action.displayUI));
+
+            } else {
+                return true;
+            }
+        });
 
         filteredActions.forEach(action => {
             if (action.stateCalculator) {
@@ -199,7 +208,19 @@ export function calculateCurrentActions(target : string) : contextActions.IExecu
         })
     } catch (Error){console.error(Error.message)}
 
-    return result
+    return result;
+}
+
+/**
+ * Used by consumers to determine the actions to execute
+ */
+export function calculateCurrentActions(target : string) : contextActions.IExecutableAction[] {
+
+    var filteredActions = actions.filter(action => {
+        return action.target == target;
+    })
+
+    return filterActionsByState(filteredActions);
 }
 
 
@@ -239,42 +260,7 @@ export function findActionById(actionId: string) : contextActions.IExecutableAct
             return action.id == actionId
         })
 
-        filteredActions.forEach(action => {
-            if (action.stateCalculator) {
-                if (action.stateCalculator.contextCalculationStarted) {
-                    try {
-                        action.stateCalculator.contextCalculationStarted()
-                    } catch (Error){console.error(Error.message)}
-                }
-            }
-        })
-
-        filteredActions.forEach(action => {
-            try {
-                var state:any = null;
-                if (action.stateCalculator) {
-                    state = action.stateCalculator.calculate();
-                }
-
-                if (action.shouldDisplay) {
-                    if (!action.shouldDisplay(state)) {
-                        return
-                    }
-                }
-
-                result.push(new ExecutableAction(action, state))
-            } catch (Error){console.error(Error.message)}
-        })
-
-        filteredActions.forEach(action => {
-            if (action.stateCalculator) {
-                if (action.stateCalculator.contextCalculationFinished) {
-                    try {
-                        action.stateCalculator.contextCalculationFinished()
-                    } catch (Error){console.error(Error.message)}
-                }
-            }
-        })
+        result = filterActionsByState(filteredActions);
     } catch (Error){console.error(Error.message)}
 
     if (result.length > 0) {
