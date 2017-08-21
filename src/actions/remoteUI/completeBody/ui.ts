@@ -1,4 +1,15 @@
-declare let UI : any
+
+import libUIModule = require("atom-ui-lib")
+
+/**
+ * ui-libs instance
+ */
+declare let UI : typeof libUIModule
+
+/**
+ * IDE UI instance
+ */
+declare let IDE: any;
 
 /**
  * Output UI state.
@@ -130,13 +141,13 @@ class FillBodyDialog {
 
     }
 
-    extraContent(s:UI.Section) {
+    extraContent(s:libUIModule.Section) {
 
     }
 
     needXML:boolean = true;
     needJSON:boolean = true;
-    createButton:UI.Button;
+    createButton:libUIModule.Button;
 
     updateButtons() {
         if (!this.createButton) {
@@ -157,40 +168,40 @@ class FillBodyDialog {
                 this.em.setText("JSON example is not correct");
                 return;
             }
-            try {
-                var so = su.getJSONSchema(this.jsschema, null);
-
-            } catch (e) {
-                this.createButton.setDisabled(true);
-                this.em.setDisplay(true)
-                this.em.setText("JSON schema is not correct");
-                return;
-            }
+            // try {
+            //     var so = su.getJSONSchema(this.jsschema, null);
+            //
+            // } catch (e) {
+            //     this.createButton.setDisabled(true);
+            //     this.em.setDisplay(true)
+            //     this.em.setText("JSON schema is not correct");
+            //     return;
+            // }
         }
         if (this.needXML) {
-            try {
-                xmlutil(this.xmlexample);
-            } catch (e) {
-                this.createButton.setDisabled(true);
-                this.em.setDisplay(true)
-                this.em.setText("XML example is not correct");
-                return;
-            }
-            try {
-                var so = su.getXMLSchema(this.xmlschema);
-
-            } catch (e) {
-                this.createButton.setDisabled(true);
-                this.em.setDisplay(true)
-                this.em.setText("XML schema is not correct");
-                return;
-            }
+            // try {
+            //     xmlutil(this.xmlexample);
+            // } catch (e) {
+            //     this.createButton.setDisabled(true);
+            //     this.em.setDisplay(true)
+            //     this.em.setText("XML example is not correct");
+            //     return;
+            // }
+            // try {
+            //     var so = su.getXMLSchema(this.xmlschema);
+            //
+            // } catch (e) {
+            //     this.createButton.setDisabled(true);
+            //     this.em.setDisplay(true)
+            //     this.em.setText("XML schema is not correct");
+            //     return;
+            // }
         }
         this.em.setDisplay(false);
         this.createButton.setDisabled(false);
     }
 
-    em:UI.Label;
+    em:libUIModule.Label;
 
     show() {
         var zz = null;
@@ -234,13 +245,13 @@ class FillBodyDialog {
         this.createTextSection(tf, "XML Schema", "text.xml", "xmlschema");
         tf.setOnSelected(()=> {
             var c = tf.selectedComponent();
-            var te = (<UI.AtomEditorElement><any>c.children()[1]);
-            te.setText((<any>this)[(<UI.BasicComponent<any>>c).id()]);
+            var te = (<libUIModule.AtomEditorElement><any>c.children()[1]);
+            te.setText((<any>this)[(<libUIModule.BasicComponent<any>>c).id()]);
 
         })
         section.addChild(tf);
         section.addChild(buttonBar);
-        zz = (<any>atom).workspace.addModalPanel({item: section.renderUI()});
+        zz = (<any>IDE).workspace.addModalPanel({item: section.renderUI()});
     }
 
     jsexample:string = '{\n "message":"Hello world"\n}'
@@ -248,7 +259,7 @@ class FillBodyDialog {
     xmlschema:string = "";
     jsschema:string = "";
 
-    private createTextSection(tf:UI.TabFolder, caption:string, lang:string, code:string) {
+    private createTextSection(tf:libUIModule.TabFolder, caption:string, lang:string, code:string) {
         var hs = UI.vc();
         hs.setCaption(caption)
         hs.setId(code)
@@ -282,26 +293,27 @@ class FillBodyDialog {
             });
             hs.addChild(b.margin(5, 5, 5, 5));
         }
-        if (code == 'xmlexample') {
-            var b = UI.button("Generate JSON example", UI.ButtonSizes.NORMAL, UI.ButtonHighlights.SUCCESS, UI.Icon.NONE, x=> {
-                try {
-                    var rs = xmlutil(this.xmlexample)
-                    this.jsexample = JSON.stringify(rs, null, 2);
-                    tf.setSelectedIndex(0)
-                }
-                catch (e) {
-                    this.jsexample = e.message;
-                    tf.setSelectedIndex(0)
-                }
-            });
-            hs.addChild(b.margin(5, 5, 5, 5));
-        }
+        // if (code == 'xmlexample') {
+        //     var b = UI.button("Generate JSON example", UI.ButtonSizes.NORMAL, UI.ButtonHighlights.SUCCESS, UI.Icon.NONE, x=> {
+        //         try {
+        //             var rs = xmlutil(this.xmlexample)
+        //             this.jsexample = JSON.stringify(rs, null, 2);
+        //             tf.setSelectedIndex(0)
+        //         }
+        //         catch (e) {
+        //             this.jsexample = e.message;
+        //             tf.setSelectedIndex(0)
+        //         }
+        //     });
+        //     hs.addChild(b.margin(5, 5, 5, 5));
+        // }
         tf.add(caption, null, hs);
     }
 
+    result : ICompleteBodyOutputUIState = null;
 
     protected onOk(zz) {
-        var uiState : contextActions.uiActions.ICompleteBodyUIState = {
+        this.result = {
             name: this.name,
             needJSON: this.needJSON,
             needXML: this.needXML,
@@ -310,7 +322,14 @@ class FillBodyDialog {
             jsschema: this.jsschema,
             xmlschema: this.xmlschema,
         }
+    }
 
-        this.callback(uiState);
+    public getResult() : ICompleteBodyOutputUIState {
+        return this.result;
     }
 }
+
+let dialog = new FillBodyDialog();
+dialog.show();
+
+this.result = dialog.getResult()

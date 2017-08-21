@@ -15,7 +15,7 @@ import utils = require("../../../actionManagement/utils")
 import fs = require ('fs')
 import apiModifier = parser.parser.modify;
 import wrapper = parser.api10;
-import completeBodyUI = require("./ui.ts")
+import completeBodyUI = require("./ui")
 import externalDisplay = require("../externalDisplay")
 
 
@@ -161,7 +161,7 @@ var completeBody : contextActions.IContextDependedUIAction = {
     shouldDisplay: state=>state != null,
     initialUIStateConvertor : null,
     displayUI: new externalDisplay.DefaultExternalUIDisplay(
-        require.resolve("./externalDisplay.ts"))
+        require.resolve("../externalDisplay"))
 
 }
 

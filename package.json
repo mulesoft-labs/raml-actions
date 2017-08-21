@@ -25,6 +25,7 @@
     "url": "https://github.com/mulesoft/raml-actions/issues"
   },
   "devDependencies": {
+    "atom-ui-lib": "*",
     "typescript": "^2.2",
     "typings": "^0.5.1",
     "dev-env-installer":"0.0.5",
