@@ -4,6 +4,7 @@ import sharedStateCalculator = require("./actionManagement/sharedASTStateCalcula
 import contextMenu = require("./actionManagement/contextMenu")
 import contextMenuImpl = require("./actionManagement/contextMenuImpl")
 import actionInitializer = require("./actions/actionInitializer")
+import loggerModule = require("./actionManagement/logger")
 
 /**
  * Actions that requires user input (UI).
@@ -347,4 +348,8 @@ export function executeAction(actionId: string) : void {
  */
 export function findActionById(actionId: string) : contextActions.IExecutableAction {
     return contextActionsImpl.findActionById(actionId);
+}
+
+export function setLogger(logger: loggerModule.ILogger) {
+    contextActionsImpl.setLogger(logger)
 }
