@@ -3,6 +3,7 @@
 import _ = require("underscore")
 
 import contextActions = require("./contextActions")
+import loggerModule = require("./logger")
 
 /**
  * Registers an action, which will take part in all engine consumers, like
@@ -17,6 +18,22 @@ export function addAction(action : contextActions.IContextDependedAction) {
     }
 
     actions.push(action)
+}
+
+let _logger = null;
+
+export function setLogger(logger: loggerModule.ILogger) {
+    _logger = logger;
+}
+
+/**
+ * Returns logger set for the module, or empty logger if nothing is set.
+ * @return {any}
+ */
+function getLogger() : loggerModule.ILogger {
+    if (_logger) return _logger;
+
+    return new loggerModule.EmptyLogger();
 }
 
 var _externalExecutor : contextActions.IExternalUIDisplayExecutor = null;
