@@ -149,6 +149,13 @@ class ExecutableAction implements contextActions.IExecutableAction {
     }
 }
 
+/**
+ * Used by consumers to determine all available actions
+ */
+export function allAvailableActions() : contextActions.IExecutableAction[] {
+    return actions ? actions.map(action => action) : [];
+}
+
 function filterActionsByState(actionsToFilter: contextActions.IContextDependedAction[])
     : contextActions.IContextDependedAction[] {
 
