@@ -119,6 +119,14 @@ export function addSimpleAction(name : string, category : string[], target : str
     contextActionsImpl.addSimpleAction(name, category, target, onClick, shouldDisplay)
 }
 
+
+/**
+ * Used by consumers to determine all available actions
+ */
+export function allAvailableActions() : contextActions.IExecutableAction[] {
+    return contextActionsImpl.allAvailableActions();
+}
+
 /**
  * Used by consumers to determine the actions to execute
  */
