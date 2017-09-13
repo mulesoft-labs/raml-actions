@@ -113,6 +113,8 @@ class ExecutableAction implements contextActions.IExecutableAction {
 
     originalAction : contextActions.IContextDependedAction
 
+    hasUI : boolean;
+
     onClick : ()=>void
 
 
@@ -131,6 +133,8 @@ class ExecutableAction implements contextActions.IExecutableAction {
         this.state = state
 
         this.originalAction = targetAction
+
+        this.hasUI = instanceofUIAction(targetAction)
 
         this.onClick = ()=> {
 
@@ -167,7 +171,7 @@ class ExecutableAction implements contextActions.IExecutableAction {
 }
 
 function filterActionsByState(actionsToFilter: contextActions.IContextDependedAction[])
-    : contextActions.IContextDependedAction[] {
+    : contextActions.IExecutableAction[] {
 
     var result : contextActions.IExecutableAction[] = [];
 

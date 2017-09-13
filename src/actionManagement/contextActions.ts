@@ -249,6 +249,11 @@ export interface IExecutableAction {
     onClick : ()=>void
 
     /**
+     * Whether action has remote (external) UI.
+     */
+    hasUI : boolean;
+
+    /**
      * Optional label, will be used instead of name for display purpose
      */
     label? : string
