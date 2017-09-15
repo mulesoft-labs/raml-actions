@@ -23,6 +23,7 @@ export function addAction(action : contextActions.IContextDependedAction) {
 let _logger = null;
 
 export function setLogger(logger: loggerModule.ILogger) {
+
     _logger = logger;
 }
 
@@ -30,7 +31,7 @@ export function setLogger(logger: loggerModule.ILogger) {
  * Returns logger set for the module, or empty logger if nothing is set.
  * @return {any}
  */
-function getLogger() : loggerModule.ILogger {
+export function getLogger() : loggerModule.ILogger {
     if (_logger) return _logger;
 
     return new loggerModule.EmptyLogger();
@@ -171,10 +172,22 @@ class ExecutableAction implements contextActions.IExecutableAction {
 }
 
 /**
- * Used by consumers to determine all available actions
+ * Used by consumers to determine all available actions.
+ * Only returns action metadata, actions are not executable due to the absence of
+ * context, thus onClick is always null
  */
 export function allAvailableActions() : contextActions.IExecutableAction[] {
-    return actions ? actions.map(action => action) : [];
+    return actions ? actions.map(action => {
+        return {
+            id: action.id,
+            name : action.name,
+            target : action.target,
+            category : action.category,
+            onClick : null,
+            hasUI : contextActions.isUIAction(action),
+            label : action.label
+        }
+    }) : [];
 }
 
 function filterActionsByState(actionsToFilter: contextActions.IContextDependedAction[])
@@ -308,9 +321,18 @@ export function findActionById(actionId: string) : contextActions.IExecutableAct
  */
 export function executeAction(actionId: string) : void {
 
+    getLogger().debug("Executing action " + actionId, "contextActions", "executeAction");
     let action = findActionById(actionId);
 
-    if (action) action.onClick();
+    getLogger().debugDetail("Action found: " + action?"true":"false",
+        "contextActions", "executeAction");
+
+    if (action) {
+        action.onClick();
+    }
+
+    getLogger().debugDetail("Finished executing action: " + actionId,
+        "contextActions", "executeAction");
 }
 
 /**

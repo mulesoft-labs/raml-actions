@@ -1,6 +1,7 @@
 //This file contains a set of action, which do not require any UI to be displayed.
 import _ = require("underscore")
 import contextActions = require("../actionManagement/contextActions")
+import contextActionsImpl = require("../actionManagement/contextActionsImpl")
 import sharedCalculator = require("../actionManagement/sharedASTStateCalculator")
 import parser=require("raml-1-parser");
 import hl=parser.hl;
@@ -132,6 +133,9 @@ export var expandTypeToJSONSchemaDefinition : contextActions.IContextDependedAct
     target: contextActions.TARGET_RAML_EDITOR_NODE,
     category: ["Refactoring"],
     onClick: (state:hl.IHighLevelNode)=> {
+        contextActionsImpl.getLogger().debug("Starting to execute",
+            "standardActions", "expandTypeToJSONSchemaDefinition");
+
         var typenode = <hl.IHighLevelNode>state;
         var api = typenode.root();
         //console.log('generate type ' + typenode.name());
@@ -151,6 +155,8 @@ export var expandTypeToJSONSchemaDefinition : contextActions.IContextDependedAct
 
         var text = api.lowLevel().unit().contents();
 
+        contextActionsImpl.getLogger().debugDetail("New text:\n" + text,
+            "standardActions", "expandTypeToJSONSchemaDefinition");
         expandTypeToJSONSchemaDefinitionCalculator.getGeneralState().editor.setText(text)
         // state.editor.setText(text);
     },
@@ -179,6 +185,9 @@ export var expandTypeToJSONSchema : contextActions.IContextDependedAction = {
     target: contextActions.TARGET_RAML_EDITOR_NODE,
     category: ["Refactoring"],
     onClick: (state:hl.IHighLevelNode)=> {
+        contextActionsImpl.getLogger().debug("Starting to execute",
+            "standardActions", "expandTypeToJSONSchema");
+
         var node = <hl.IHighLevelNode>state;
         var api = node.root();
         var type = node.attrValue('type');
@@ -192,8 +201,14 @@ export var expandTypeToJSONSchema : contextActions.IContextDependedAction = {
             node.attrOrCreate('schema').setValue(text);
             text = api.lowLevel().unit().contents();
 
+            contextActionsImpl.getLogger().debugDetail("New text:\n" + text,
+                "standardActions", "expandTypeToJSONSchema");
+
             expandTypeToJSONSchemaCalculator.getGeneralState().editor.setText(text);
             // state.editor.setText(text);
+        } else {
+            contextActionsImpl.getLogger().debugDetail("Type node is not found",
+                "standardActions", "expandTypeToJSONSchema");
         }
     },
     stateCalculator: expandTypeToJSONSchemaCalculator,

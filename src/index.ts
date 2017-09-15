@@ -358,6 +358,10 @@ export function findActionById(actionId: string) : contextActions.IExecutableAct
     return contextActionsImpl.findActionById(actionId);
 }
 
+/**
+ * Sets logger for the whole module.
+ * @param logger
+ */
 export function setLogger(logger: loggerModule.ILogger) {
     contextActionsImpl.setLogger(logger)
 }
