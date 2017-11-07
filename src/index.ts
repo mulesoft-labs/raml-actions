@@ -4,6 +4,7 @@ import sharedStateCalculator = require("./actionManagement/sharedASTStateCalcula
 import contextMenu = require("./actionManagement/contextMenu")
 import contextMenuImpl = require("./actionManagement/contextMenuImpl")
 import actionInitializer = require("./actions/actionInitializer")
+import loggerModule = require("./actionManagement/logger")
 
 /**
  * Actions that requires user input (UI).
@@ -118,6 +119,14 @@ export function addSimpleAction(name : string, category : string[], target : str
     contextActionsImpl.addSimpleAction(name, category, target, onClick, shouldDisplay)
 }
 
+
+/**
+ * Used by consumers to determine all available actions
+ */
+export function allAvailableActions() : contextActions.IExecutableAction[] {
+    return contextActionsImpl.allAvailableActions();
+}
+
 /**
  * Used by consumers to determine the actions to execute
  */
@@ -175,6 +184,42 @@ export type IASTProvider = sharedStateCalculator.IASTProvider
  * Provider for AST modifications.
  */
 export type IASTModifier = sharedStateCalculator.IASTModifier
+
+/**
+ * Converts external UI display into local UI display synchronized with external display.
+ */
+export type IExternalUIDisplayExecutor = contextActions.IExternalUIDisplayExecutor;
+
+/**
+ * Is called when user activates action to display UI externally.
+ * Should return JS code to execute externally.
+ *
+ * The code Recieves initial UI state, which is previously converted from context state,
+ * or context state directly if no convertor is specified,
+ * returns promise providing final ui state, for action to proceed its execution
+ *
+ */
+export type IExternalUIDisplay = contextActions.IExternalUIDisplay;
+
+/**
+ * Range in the document.
+ */
+export type ITextEditRange = contextActions.ITextEditRange;
+
+/**
+ * Text edit.
+ */
+export type ITextEdit = contextActions.ITextEdit;
+
+/**
+ * Set of text edits for the document
+ */
+export type IDocumentEdit = contextActions.IChangedDocument;
+
+/**
+ * Performs document changes.
+ */
+export type IDocumentChangeExecutor = contextActions.IDocumentChangeExecutor;
 
 /**
  * Intended for subclassing version of GeneralASTStateCalculator
@@ -271,4 +316,52 @@ export function intializeStandardActions() : void {
  */
 export function initializeActionBasedMenu(selector? : string) : void {
     contextMenuImpl.initializeActionBasedMenu(selector);
+}
+
+
+/**
+ * Sets default external ui display executor. Must be set before any of IExternalUIDisplay actions
+ * can be executed.
+ * @param executor
+ */
+export function setExternalUIDisplayExecutor(executor: IExternalUIDisplayExecutor) {
+    contextActionsImpl.setExternalUIDisplayExecutor(executor);
+}
+
+/**
+ * Sets default external ui display executor. Must be set before any of IExternalUIDisplay actions
+ * can be executed.
+ * @param executor
+ */
+export function setDocumentChangeExecutor(executor: contextActions.IDocumentChangeExecutor) {
+    contextActionsImpl.setDocumentChangeExecutor(executor);
+}
+
+/**
+ * Executes action by ID.
+ * Actions are still being filtered by the context, so no invalid actions will be executed.
+ *
+ * If several actions matches by ID, any one will be executed.
+ *
+ * @param actionId
+ */
+export function executeAction(actionId: string) : void {
+    contextActionsImpl.executeAction(actionId);
+}
+
+/**
+ * Finds executable action by ID.
+ * @param actionId
+ * @return {any}
+ */
+export function findActionById(actionId: string) : contextActions.IExecutableAction {
+    return contextActionsImpl.findActionById(actionId);
+}
+
+/**
+ * Sets logger for the whole module.
+ * @param logger
+ */
+export function setLogger(logger: loggerModule.ILogger) {
+    contextActionsImpl.setLogger(logger)
 }

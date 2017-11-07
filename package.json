@@ -1,6 +1,6 @@
 {
   "name": "raml-actions",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "main": "dist/index.js",
   "scripts": {
     "build": "rimraf dist && tsc",
@@ -11,8 +11,8 @@
   },
   "dependencies": {
     "underscore": "^1.8.3",
-    "raml-1-parser": "1.1.30",
-    "raml-suggestions": "0.0.38"
+    "raml-1-parser": "1.1.36",
+    "raml-suggestions": "0.0.42"
   },
   "typings":"dist/index.d.ts",
   "repository": {
@@ -25,9 +25,13 @@
     "url": "https://github.com/mulesoft/raml-actions/issues"
   },
   "devDependencies": {
-    "typescript": "1.8.7",
-    "typings": "^0.5.1",
-    "dev-env-installer":"0.0.5",
-    "rimraf":"*"
+    "@types/node": "8.0.47",
+    "@types/chai": "^4.0.1",
+    "@types/mocha": "^2.2.41",
+    "@types/underscore": "^1.8.3",
+    "atom-ui-lib": "0.0.17",
+    "typescript": "^2.5.2",
+    "dev-env-installer":"0.0.14",
+    "rimraf":"2.6.2"
   }
 }

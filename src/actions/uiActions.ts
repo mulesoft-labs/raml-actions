@@ -23,6 +23,8 @@ function standardToUIAction(original : contextActions.IContextDependedAction,
     displayUI : contextActions.IUIDisplay) : contextActions.IContextDependedUIAction{
 
     return {
+        id: original.id,
+
         name: original.name,
 
         target: original.target,
@@ -94,6 +96,8 @@ class MoveContentStateCalculator extends sharedCalculator.CommonASTStateCalculat
 var moveContentsStateCalculator = new MoveContentStateCalculator();
 
 var moveContents : contextActions.IContextDependedAction = {
+    id: "moveContents",
+
     name: "Move content to other file",
 
     target: contextActions.TARGET_RAML_EDITOR_NODE,
@@ -112,7 +116,7 @@ var moveContents : contextActions.IContextDependedAction = {
         var replacements = [];
 
         var dump = node.lowLevel().dump();
-        
+
         findIncludesInside(node.lowLevel()).forEach(include => {
             var includePath = include.includePath();
 
@@ -120,8 +124,8 @@ var moveContents : contextActions.IContextDependedAction = {
                 return;
             }
             
-            var includeStart = include.start() - node.lowLevel().start();
-            var includeEnd = include.end() - node.lowLevel().start();
+            var includeStart = include.start() - node.lowLevel().start() - calculatePositionShift(node, include.start());
+            var includeEnd = include.end() - node.lowLevel().start() - calculatePositionShift(node, include.end());
             
             replacements.push({
                 start: includeStart,
@@ -321,6 +325,8 @@ export interface ICompleteBodyUIState {
 }
 
 var completeBody = {
+    id: "completeBody",
+
     name: "Complete body",
         target: contextActions.TARGET_RAML_EDITOR_NODE,
     category: ["Add new..."],
@@ -369,13 +375,13 @@ var completeBody = {
             }
         } else {
             //RAML 1.0 case
-            var response = contextState;
-            if (!universeHelpers.isResponseType(response.property().range())) {
-                console.log("Incorrect parent " + response.printDetails() + " , expecting response")
+            var responseOrMethod = contextState;
+            if (!(universeHelpers.isResponseType(responseOrMethod.property().range()) || universeHelpers.isMethodType(responseOrMethod.property().range()))) {
+                console.log("Incorrect parent " + responseOrMethod.printDetails() + " , expecting response or method")
                 return;
             }
 
-            var responseWrapper = <wrapper.Response>response.wrapperNode();
+            var responseWrapper = <wrapper.Response>responseOrMethod.wrapperNode();
 
             var bodies: wrapper.TypeDeclaration[] = [];
 
@@ -424,6 +430,65 @@ var completeBody = {
     },
     stateCalculator: new CompleteBodyStateCalculator(),
     shouldDisplay: state=>state != null
+}
+
+function getLinesBefore(node: hl.IHighLevelNode, position: number) {
+    var content = node.lowLevel().unit().contents();
+
+    var substring = content.substring(node.lowLevel().start(), position);
+
+    var result = utils.splitOnLines(substring).length - 1;
+
+    return result > -1 ? result : 0;
+}
+
+function getEmptyLinesLengthAndCount(node: hl.IHighLevelNode, position: number): {length: number, count: number} {
+    var content = node.lowLevel().unit().contents();
+
+    var substring = content.substring(node.lowLevel().start(), position);
+
+    var lines = utils.splitOnLines(substring);
+
+    var length = 0;
+    var count = 0
+
+    lines.forEach(line => {
+        if(line.trim() === "") {
+            count += 1;
+            length += line.length
+        }
+    });
+
+    return {length, count};
+}
+
+function detectIndentShift(node: hl.IHighLevelNode): number {
+    var content = node.lowLevel().unit().contents();
+
+    var substring = content.substring(node.lowLevel().start(), node.lowLevel().end());
+    var dump = node.lowLevel().dump();
+
+    var lines1 = utils.splitOnLines(substring);
+    var lines2 = utils.splitOnLines(dump);
+
+    if(lines1.length < 2 || lines2.length < 2) {
+        return 0;
+    }
+
+    var line1 = lines1[1];
+    var line2 = lines2[1];
+
+    return line1.length - line2.length;
+}
+
+function calculatePositionShift(node: hl.IHighLevelNode, position: number): number {
+    var indentShift = detectIndentShift(node);
+    
+    var linesBefore = getLinesBefore(node, position);
+
+    var emptyLinesInfo = getEmptyLinesLengthAndCount(node, position);
+
+    return (linesBefore - emptyLinesInfo.count) * indentShift + emptyLinesInfo.length;
 }
 
 export interface CompleteBodyDisplayUI extends contextActions.IUIDisplay {
