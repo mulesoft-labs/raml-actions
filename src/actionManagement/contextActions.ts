@@ -211,7 +211,7 @@ export function isUIAction(action : IContextDependedAction) : action is IContext
  * Converts external UI display into local UI display synchronized with external display.
  */
 export interface IExternalUIDisplayExecutor {
-    (externalDisplay : IExternalUIDisplay) : IUIDisplay;
+    (actionID: string, externalDisplay : IExternalUIDisplay) : IUIDisplay;
 }
 
 /**

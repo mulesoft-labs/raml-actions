@@ -25,16 +25,30 @@ class CompleteBodyStateCalculator extends sharedCalculator.CommonASTStateCalcula
 
     calculate():any {
 
+        contextActionsImpl.getLogger().debug("Starting to calculate state",
+            "CompleteBodyStateCalculator", "calculate");
+
         var generalState = this.getGeneralState()
+
+        contextActionsImpl.getLogger().debug("General state calculated: " + (generalState ? "true": "false"),
+            "CompleteBodyStateCalculator", "calculate");
+
         if (!generalState) return null
 
-        if (generalState.completionKind != search.LocationKind.KEY_COMPLETION)
+        if (generalState.completionKind != search.LocationKind.KEY_COMPLETION) {
+            contextActionsImpl.getLogger().debug("Returning due to wrong completion kind",
+                "CompleteBodyStateCalculator", "calculate");
             return null;
+        }
 
         var highLevelNode = <hl.IHighLevelNode>generalState.node;
 
         if (universeHelpers.isResponseType(highLevelNode.definition()) ||
             universeHelpers.isMethodType(highLevelNode.definition())) {
+
+            contextActionsImpl.getLogger().debug("Is response or method",
+                "CompleteBodyStateCalculator", "calculate");
+
             var txt = generalState.editor.getText();
             var res = getKeyValue(generalState.offset, txt);
             if (res == "body") {
@@ -42,10 +56,17 @@ class CompleteBodyStateCalculator extends sharedCalculator.CommonASTStateCalcula
             }
         }
         if (universeHelpers.isBodyLikeType(highLevelNode.definition())) {
+
+            contextActionsImpl.getLogger().debug("Is body of RAML 0.8",
+                "CompleteBodyStateCalculator", "calculate");
+
             if (highLevelNode.elements().length == 0) {
                 return highLevelNode
             }
         }
+
+        contextActionsImpl.getLogger().debug("No proper node type found",
+            "CompleteBodyStateCalculator", "calculate");
 
         return null
     }
@@ -159,7 +180,9 @@ var completeBody : contextActions.IContextDependedUIAction = {
     },
     stateCalculator: completeBodyStateCalculator,
     shouldDisplay: state=>state != null,
-    initialUIStateConvertor : null,
+    initialUIStateConvertor : modelState=>{
+        return {};
+    },
     displayUI: new externalDisplay.DefaultExternalUIDisplay(
         require.resolve("../externalDisplay"))
 
