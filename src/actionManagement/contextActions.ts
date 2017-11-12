@@ -27,6 +27,7 @@ export interface IContextStateCalculator {
 /**
  * Is called when user activates action. Recieves context state previously calculated by
  * the context state calculator.
+ *
  */
 export interface IActionItemCallback {
     (contextState? : any, uiState? : any) : void
@@ -245,8 +246,11 @@ export interface IExecutableAction {
 
     /**
      * Callback called when the action is activated.
+     *
+     * If action has UI and thus is long-running, must return promise from onClick
+     * resolving when finished.
      */
-    onClick : ()=>void
+    onClick : () => void | Promise<void>
 
     /**
      * Whether action has remote (external) UI.

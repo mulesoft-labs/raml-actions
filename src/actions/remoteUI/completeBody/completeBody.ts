@@ -177,6 +177,7 @@ var completeBody : contextActions.IContextDependedUIAction = {
 
         var rs = parentOfParent.lowLevel().unit().contents();
         generalState.editor.setText(utils.cleanEmptyLines(rs));
+
     },
     stateCalculator: completeBodyStateCalculator,
     shouldDisplay: state=>state != null,
@@ -210,13 +211,19 @@ function getKeyValue(offset, txt) {
 }
 
 export function saveExample(r:hl.IHighLevelNode, schp:string, content:string, editor : sharedCalculator.IAbstractTextEditor) {
-
     var sdir = path.resolve(path.dirname(editor.getPath()), path.dirname(schp));
-    if (!fs.existsSync(sdir)) {
-        fs.mkdirSync(sdir);
-    }
     var shFile = path.resolve(path.dirname(editor.getPath()), schp);
-    fs.writeFileSync(shFile, content)
+
+    contextActionsImpl.getDocumentChangeExecutor().changeDocument({
+        uri: shFile,
+        text: content
+    })
+    // var sdir = path.resolve(path.dirname(editor.getPath()), path.dirname(schp));
+    // if (!fs.existsSync(sdir)) {
+    //     fs.mkdirSync(sdir);
+    // }
+    // var shFile = path.resolve(path.dirname(editor.getPath()), schp);
+    // fs.writeFileSync(shFile, content)
 }
 
 /**

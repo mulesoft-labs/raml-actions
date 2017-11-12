@@ -62,8 +62,8 @@ export function setDocumentChangeExecutor(executor: contextActions.IDocumentChan
  * can be executed.
  * @param executor
  */
-export function getDocumentChangeExecutor(executor: contextActions.IDocumentChangeExecutor) {
-    _documentChangeExecutor = executor;
+export function getDocumentChangeExecutor() : contextActions.IDocumentChangeExecutor {
+    return _documentChangeExecutor;
 }
 
 /**
@@ -163,7 +163,7 @@ class ExecutableAction implements contextActions.IExecutableAction {
                     getLogger().debugDetail("Action has local UI display",
                         "contextActions", "onClick");
 
-                    display(initialUIState).then(finalUIState=>{
+                    return display(initialUIState).then(finalUIState=>{
                         this.originalAction.onClick(this.state, finalUIState)
                     })
                 } else if (_externalExecutor && contextActions.isExternalUIDisplay(display)) {
@@ -176,7 +176,7 @@ class ExecutableAction implements contextActions.IExecutableAction {
                         "contextActions", "onClick");
 
                     if (externalDisplay) {
-                        externalDisplay(initialUIState).then(finalUIState=>{
+                        return externalDisplay(initialUIState).then(finalUIState=>{
 
                             getLogger().debugDetail("External UI displayed finished its work with state:" +
                                 JSON.stringify(finalUIState),
@@ -187,6 +187,8 @@ class ExecutableAction implements contextActions.IExecutableAction {
                             getLogger().debugDetail("Original onclick call finished",
                                 "contextActions", "onClick");
                         })
+                    } else {
+                        return Promise.resolve();
                     }
                 }
 
@@ -334,10 +336,12 @@ export function getCategorizedActionLabel(action : contextActions.IExecutableAct
 
 /**
  * Finds executable action by ID.
- * @param actionId
+ * @param actionId - aciton id
+ * @param metadataOnly - if true will return uninitialized action, speeds up the process.
+ *
  * @return {any}
  */
-export function findActionById(actionId: string) : contextActions.IExecutableAction {
+export function findActionById(actionId: string, metadataOnly=false) : contextActions.IExecutableAction {
     var result : contextActions.IExecutableAction[] = []
 
     getLogger().debugDetail("Finding action " + actionId, "contextActions", "findActionById");
@@ -350,7 +354,21 @@ export function findActionById(actionId: string) : contextActions.IExecutableAct
         getLogger().debugDetail("Filtered actions by ID " + (filteredActions?filteredActions.length:0),
             "contextActions", "findActionById");
 
-        result = filterActionsByState(filteredActions);
+        if (metadataOnly) {
+            result = filteredActions.map(action => {
+                return {
+                    id: action.id,
+                    name : action.name,
+                    target : action.target,
+                    category : action.category,
+                    onClick : null,
+                    hasUI : contextActions.isUIAction(action),
+                    label : action.label
+                }
+            });
+        } else {
+            result = filterActionsByState(filteredActions);
+        }
 
         getLogger().debugDetail("Filtered actions by state " + (result?result.length:0),
             "contextActions", "findActionById");
@@ -371,9 +389,11 @@ export function findActionById(actionId: string) : contextActions.IExecutableAct
  *
  * If several actions matches by ID, any one will be executed.
  *
+ * Returns nothing for short-running actions and promise for long-running actions with any UI.
+ *
  * @param actionId
  */
-export function executeAction(actionId: string) : void {
+export function executeAction(actionId: string) : void | Promise<void> {
 
     getLogger().debug("Executing action " + actionId, "contextActions", "executeAction");
     let action = findActionById(actionId);
@@ -381,12 +401,25 @@ export function executeAction(actionId: string) : void {
     getLogger().debugDetail("Action found: " + (action?"true":"false"),
         "contextActions", "executeAction");
 
-    if (action) {
-        action.onClick();
-    }
+    if (action && action.hasUI) {
 
-    getLogger().debugDetail("Finished executing action: " + actionId,
-        "contextActions", "executeAction");
+        const onClickPromise = (action.onClick() as Promise<void>);
+
+        getLogger().debugDetail("Got onClick promise: " +
+            ((onClickPromise && onClickPromise.then) ? "true" : "false"),
+            "contextActions", "executeAction");
+
+        return onClickPromise.then(()=>{
+            getLogger().debugDetail("Finished executing action: " + actionId,
+                "contextActions", "executeAction");
+        });
+
+    } else if (action) {
+
+        action.onClick();
+        getLogger().debugDetail("Finished executing action: " + actionId,
+            "contextActions", "executeAction");
+    }
 }
 
 /**
