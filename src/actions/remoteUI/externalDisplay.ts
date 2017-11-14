@@ -4,7 +4,7 @@ import fs = require ('fs')
 
 export class DefaultExternalUIDisplay implements contextActions.IExternalUIDisplay {
 
-    constructor(private path : string) {
+    constructor(private path : string, private content?: string) {
 
     }
 
@@ -15,6 +15,6 @@ export class DefaultExternalUIDisplay implements contextActions.IExternalUIDispl
      * @param initialUIState
      */
     createUICode(initialUIState? : any ) : string {
-        return fs.readFileSync(this.path).toString();
+        return this.content || fs.readFileSync(this.path).toString();
     }
 }

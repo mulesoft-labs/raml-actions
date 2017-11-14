@@ -181,12 +181,10 @@ var completeBody : contextActions.IContextDependedUIAction = {
     },
     stateCalculator: completeBodyStateCalculator,
     shouldDisplay: state=>state != null,
-    initialUIStateConvertor : modelState=>{
+    initialUIStateConvertor : modelState => {
         return {};
     },
-    displayUI: new externalDisplay.DefaultExternalUIDisplay(
-        require.resolve("../externalDisplay"))
-
+    displayUI: new externalDisplay.DefaultExternalUIDisplay(require.resolve("../externalDisplay"), require("../isPackaged").check() ? require("raw-loader!./ui") : undefined)
 }
 
 function getKeyValue(offset, txt) {
