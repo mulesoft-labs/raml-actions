@@ -63,12 +63,29 @@ export function applyChanges(parent: hl.IHighLevelNode, changes: any, title: str
     parent.add(stub);
 }
 
-export function getMethodParent(node: hl.IHighLevelNode) {
+export function getParent(node: hl.IHighLevelNode, name:string): hl.IHighLevelNode {
+    if (!node || !node.property()) return null;
+    if ((node.definition().isAssignableFrom(name))){
+        return node;
+    }
+    return null;
+}
+
+export function getMethodParent(node: hl.IHighLevelNode): hl.IHighLevelNode {
     if (!node || !node.property()) return null;
 
     if ((universeHelpers.isMethodType(node.definition())||universeHelpers.isTraitType(node.definition()))&&!node.definition().getAdapter(services.RAMLService).isUserDefined()){
         return node;
     }
+
+    return null;
+}
+
+export function toResource(node: hl.IHighLevelNode): hl.IHighLevelNode {
+    if (!node || !node.property()) return null;
+
+    if ((universeHelpers.isResourcesProperty(node.property()) || universeHelpers.isResourceTypesProperty(node.property()))
+        && (universeHelpers.isResourceType(node.definition()) || universeHelpers.isResourceTypeType(node.definition()))) return node;
 
     return null;
 }

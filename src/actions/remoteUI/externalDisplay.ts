@@ -15,6 +15,6 @@ export class DefaultExternalUIDisplay implements contextActions.IExternalUIDispl
      * @param initialUIState
      */
     createUICode(initialUIState? : any ) : string {
-        return "";//this.content || fs.readFileSync(this.path).toString();
+        return this.content || (this.path && fs.readFileSync(this.path).toString()) || "";
     }
 }

@@ -32,14 +32,6 @@ export function run(initialState): Promise<any> {
 
     return new Promise((resolve) => {
         UI.simpleModalDialog(panel, () => {
-            // (<any>stub)._parent=null;
-            //
-            // (<any>stub.lowLevel())._unit=null;
-            //
-            // parent.add(stub);
-            //
-            // editorTools.updateAndSelect(stub);
-
             resolve(changes);
 
             return true;
