@@ -50,6 +50,10 @@ function innerCreateAction(name: string, category: string, property: string, key
         category: [category],
 
         onClick: (contextState : hl.IHighLevelNode, uiState : any) => {
+            if(uiState.canceled) {
+                return;
+            }
+            
             var generalState = stateCalculator.getGeneralState();
 
             stateUtils.applyChanges(contextState, uiState, name, property, key);
