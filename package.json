@@ -13,7 +13,8 @@
     "underscore": "^1.8.3",
     "raml-1-parser": "1.1.36",
     "raml-suggestions": "0.0.42",
-    "raml-outline": "*"
+    "raml-outline": "0.0.13",
+    "know-your-http-well": "~0.2.0"
   },
   "typings":"dist/index.d.ts",
   "repository": {
