@@ -1,3 +1,9 @@
+var isPackaged = false;
+
 export function check(): boolean {
-    return false;
+    return isPackaged;
+}
+
+export function setTrue() {
+    isPackaged = true;
 }
