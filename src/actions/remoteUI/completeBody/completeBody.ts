@@ -25,16 +25,30 @@ class CompleteBodyStateCalculator extends sharedCalculator.CommonASTStateCalcula
 
     calculate():any {
 
+        contextActionsImpl.getLogger().debug("Starting to calculate state",
+            "CompleteBodyStateCalculator", "calculate");
+
         var generalState = this.getGeneralState()
+
+        contextActionsImpl.getLogger().debug("General state calculated: " + (generalState ? "true": "false"),
+            "CompleteBodyStateCalculator", "calculate");
+
         if (!generalState) return null
 
-        if (generalState.completionKind != search.LocationKind.KEY_COMPLETION)
+        if (generalState.completionKind != search.LocationKind.KEY_COMPLETION) {
+            contextActionsImpl.getLogger().debug("Returning due to wrong completion kind",
+                "CompleteBodyStateCalculator", "calculate");
             return null;
+        }
 
         var highLevelNode = <hl.IHighLevelNode>generalState.node;
 
         if (universeHelpers.isResponseType(highLevelNode.definition()) ||
             universeHelpers.isMethodType(highLevelNode.definition())) {
+
+            contextActionsImpl.getLogger().debug("Is response or method",
+                "CompleteBodyStateCalculator", "calculate");
+
             var txt = generalState.editor.getText();
             var res = getKeyValue(generalState.offset, txt);
             if (res == "body") {
@@ -42,10 +56,17 @@ class CompleteBodyStateCalculator extends sharedCalculator.CommonASTStateCalcula
             }
         }
         if (universeHelpers.isBodyLikeType(highLevelNode.definition())) {
+
+            contextActionsImpl.getLogger().debug("Is body of RAML 0.8",
+                "CompleteBodyStateCalculator", "calculate");
+
             if (highLevelNode.elements().length == 0) {
                 return highLevelNode
             }
         }
+
+        contextActionsImpl.getLogger().debug("No proper node type found",
+            "CompleteBodyStateCalculator", "calculate");
 
         return null
     }
@@ -156,13 +177,14 @@ var completeBody : contextActions.IContextDependedUIAction = {
 
         var rs = parentOfParent.lowLevel().unit().contents();
         generalState.editor.setText(utils.cleanEmptyLines(rs));
+
     },
     stateCalculator: completeBodyStateCalculator,
     shouldDisplay: state=>state != null,
-    initialUIStateConvertor : null,
-    displayUI: new externalDisplay.DefaultExternalUIDisplay(
-        require.resolve("../externalDisplay"))
-
+    initialUIStateConvertor : modelState => {
+        return {};
+    },
+    displayUI: new externalDisplay.DefaultExternalUIDisplay(require.resolve("../externalDisplay"), require("../isPackaged").check() ? require("raw-loader!./ui") : undefined)
 }
 
 function getKeyValue(offset, txt) {
@@ -187,13 +209,19 @@ function getKeyValue(offset, txt) {
 }
 
 export function saveExample(r:hl.IHighLevelNode, schp:string, content:string, editor : sharedCalculator.IAbstractTextEditor) {
-
     var sdir = path.resolve(path.dirname(editor.getPath()), path.dirname(schp));
-    if (!fs.existsSync(sdir)) {
-        fs.mkdirSync(sdir);
-    }
     var shFile = path.resolve(path.dirname(editor.getPath()), schp);
-    fs.writeFileSync(shFile, content)
+
+    contextActionsImpl.getDocumentChangeExecutor().changeDocument({
+        uri: shFile,
+        text: content
+    })
+    // var sdir = path.resolve(path.dirname(editor.getPath()), path.dirname(schp));
+    // if (!fs.existsSync(sdir)) {
+    //     fs.mkdirSync(sdir);
+    // }
+    // var shFile = path.resolve(path.dirname(editor.getPath()), schp);
+    // fs.writeFileSync(shFile, content)
 }
 
 /**

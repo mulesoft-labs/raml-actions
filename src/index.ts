@@ -329,7 +329,7 @@ export function setExternalUIDisplayExecutor(executor: IExternalUIDisplayExecuto
 }
 
 /**
- * Sets default external ui display executor. Must be set before any of IExternalUIDisplay actions
+ * Sets document change executor. Must be set before any of IExternalUIDisplay actions
  * can be executed.
  * @param executor
  */
@@ -343,18 +343,23 @@ export function setDocumentChangeExecutor(executor: contextActions.IDocumentChan
  *
  * If several actions matches by ID, any one will be executed.
  *
+ * Returns nothing for short-running actions and promise for long-running actions with any UI.
+ * action.hasUI metadata can be tested to determine whether action has UI.
+ *
  * @param actionId
  */
-export function executeAction(actionId: string) : void {
-    contextActionsImpl.executeAction(actionId);
+export function executeAction(actionId: string) : void | Promise<void> {
+    return contextActionsImpl.executeAction(actionId);
 }
 
 /**
  * Finds executable action by ID.
- * @param actionId
+ * @param actionId - action ID.
+ * @param metadataOnly - if true will return uninitialized action, speeds up the process.
+ *
  * @return {any}
  */
-export function findActionById(actionId: string) : contextActions.IExecutableAction {
+export function findActionById(actionId: string, metadataOnly=false) : contextActions.IExecutableAction {
     return contextActionsImpl.findActionById(actionId);
 }
 

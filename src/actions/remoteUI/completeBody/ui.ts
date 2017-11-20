@@ -136,9 +136,17 @@ export function generateSchema(text:string,mediaType:string):string{
 class FillBodyDialog {
 
     protected name:string = ""
+    private resolve;
+    private reject;
+    private resultPromise;
 
     constructor(protected title:string = "Fill body") {
+        this.resultPromise = new Promise((resolve: (value?: ICompleteBodyOutputUIState) => void,
+                                          reject: (error?: any) => void) => {
 
+            this.resolve = resolve;
+            this.reject = reject;
+        });
     }
 
     extraContent(s:libUIModule.Section) {
@@ -310,10 +318,8 @@ class FillBodyDialog {
         tf.add(caption, null, hs);
     }
 
-    result : ICompleteBodyOutputUIState = null;
-
     protected onOk(zz) {
-        this.result = {
+        this.resolve({
             name: this.name,
             needJSON: this.needJSON,
             needXML: this.needXML,
@@ -321,15 +327,16 @@ class FillBodyDialog {
             xmlexample: this.xmlexample,
             jsschema: this.jsschema,
             xmlschema: this.xmlschema,
-        }
+        });
     }
 
-    public getResult() : ICompleteBodyOutputUIState {
-        return this.result;
+    public getResult() : Promise<ICompleteBodyOutputUIState> {
+        return this.resultPromise;
     }
 }
+export function run() : Promise<any> {
+    let dialog = new FillBodyDialog();
+    dialog.show();
 
-let dialog = new FillBodyDialog();
-dialog.show();
-
-this.result = dialog.getResult()
+    return dialog.getResult();
+}

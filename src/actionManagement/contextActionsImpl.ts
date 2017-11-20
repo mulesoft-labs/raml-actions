@@ -62,8 +62,8 @@ export function setDocumentChangeExecutor(executor: contextActions.IDocumentChan
  * can be executed.
  * @param executor
  */
-export function getDocumentChangeExecutor(executor: contextActions.IDocumentChangeExecutor) {
-    _documentChangeExecutor = executor;
+export function getDocumentChangeExecutor() : contextActions.IDocumentChangeExecutor {
+    return _documentChangeExecutor;
 }
 
 /**
@@ -93,7 +93,7 @@ export function addSimpleAction(name : string, category : string[],
 }
 
 export function instanceofUIAction(action : contextActions.IContextDependedAction) : action is contextActions.IContextDependedUIAction {
-    return (<any>action).displayUI && typeof((<any>action).displayUI) == "function";
+    return (<any>action).displayUI;
 }
 
 class ExecutableAction implements contextActions.IExecutableAction {
@@ -141,27 +141,61 @@ class ExecutableAction implements contextActions.IExecutableAction {
 
                 //for ui actions first looking into context state -> initial ui state conversion
                 var initialUIState = this.state;
-                if (targetAction.initialUIStateConvertor)
+
+                getLogger().debugDetail("Model state:" + JSON.stringify(initialUIState),
+                    "contextActions", "onClick");
+
+                if (targetAction.initialUIStateConvertor) {
                     initialUIState = targetAction.initialUIStateConvertor(initialUIState);
+
+                    getLogger().debugDetail("Model state converted to initial UI state:" +
+                        JSON.stringify(initialUIState),
+                        "contextActions", "onClick");
+                }
 
                 //then calling UI with original action onClick as a callback
                 let display = targetAction.displayUI;
-                if (contextActions.isUIDisplay(display)) {
-                    display(initialUIState).then(finalUIState=>{
 
+                getLogger().debugDetail("Display found:" + (display?"true":"false"),
+                    "contextActions", "onClick");
+
+                if (contextActions.isUIDisplay(display)) {
+                    getLogger().debugDetail("Action has local UI display",
+                        "contextActions", "onClick");
+
+                    return display(initialUIState).then(finalUIState=>{
                         this.originalAction.onClick(this.state, finalUIState)
                     })
                 } else if (_externalExecutor && contextActions.isExternalUIDisplay(display)) {
-                    let externalDisplay = _externalExecutor(display);
+                    getLogger().debugDetail("Action has external UI display and external executor exists",
+                        "contextActions", "onClick");
+
+                    let externalDisplay = _externalExecutor(targetAction.id, display);
+
+                    getLogger().debugDetail("External display found:" + (externalDisplay?"true":"false"),
+                        "contextActions", "onClick");
+
                     if (externalDisplay) {
-                        externalDisplay(initialUIState).then(finalUIState=>{
+                        return externalDisplay(initialUIState).then(finalUIState=>{
+
+                            getLogger().debugDetail("External UI displayed finished its work with state:" +
+                                JSON.stringify(finalUIState),
+                                "contextActions", "onClick");
 
                             this.originalAction.onClick(this.state, finalUIState)
+
+                            getLogger().debugDetail("Original onclick call finished",
+                                "contextActions", "onClick");
                         })
+                    } else {
+                        return Promise.resolve();
                     }
                 }
 
             } else {
+                getLogger().debugDetail("Action is non-ui",
+                    "contextActions", "onClick");
+
                 //for standard actions simply calling onclick immediatelly
                 this.originalAction.onClick(this.state)
             }
@@ -193,6 +227,10 @@ function filterActionsByState(actionsToFilter: contextActions.IContextDependedAc
 
     var result : contextActions.IExecutableAction[] = [];
 
+    getLogger().debugDetail("Filtering actions", "contextActions", "filterActionsByState");
+    getLogger().debugDetail("External executor exists: " + (_externalExecutor?"true":"false"),
+        "contextActions", "filterActionsByState");
+
     try {
         var filteredActions = actionsToFilter.filter(action=>{
 
@@ -201,10 +239,17 @@ function filterActionsByState(actionsToFilter: contextActions.IContextDependedAc
                 //if action requires UI, we need to check whether remote UI executor is set up
                 //If executor is not set, we only provide actions, which UI can be executed locally.
                 //If executor is set, we provide actions, which can be executed remotelly
-                return (_externalExecutor && contextActions.isExternalUIDisplay(action.displayUI))
+                const result = (_externalExecutor && contextActions.isExternalUIDisplay(action.displayUI))
                     || (!_externalExecutor && contextActions.isUIDisplay(action.displayUI));
 
+                getLogger().debugDetail("UI action " + action.id + " "
+                    + (result?"passed":"rejected"), "contextActions", "filterActionsByState");
+                return result;
+
             } else {
+                getLogger().debugDetail("Non-UI action " + action.id + " "
+                    + "passed", "contextActions", "filterActionsByState");
+
                 return true;
             }
         });
@@ -228,7 +273,7 @@ function filterActionsByState(actionsToFilter: contextActions.IContextDependedAc
 
                 if (action.shouldDisplay) {
                     if (!action.shouldDisplay(state)) {
-                        return
+                        return;
                     }
                 }
 
@@ -246,6 +291,9 @@ function filterActionsByState(actionsToFilter: contextActions.IContextDependedAc
             }
         })
     } catch (Error){console.error(Error.message)}
+
+    getLogger().debugDetail("Returning: [" + result.map(action=>action.id).join(",") + "]",
+        "contextActions", "filterActionsByState");
 
     return result;
 }
@@ -288,19 +336,45 @@ export function getCategorizedActionLabel(action : contextActions.IExecutableAct
 
 /**
  * Finds executable action by ID.
- * @param actionId
+ * @param actionId - aciton id
+ * @param metadataOnly - if true will return uninitialized action, speeds up the process.
+ *
  * @return {any}
  */
-export function findActionById(actionId: string) : contextActions.IExecutableAction {
+export function findActionById(actionId: string, metadataOnly=false) : contextActions.IExecutableAction {
     var result : contextActions.IExecutableAction[] = []
+
+    getLogger().debugDetail("Finding action " + actionId, "contextActions", "findActionById");
 
     try {
         var filteredActions = actions.filter(action => {
             return action.id == actionId
         })
 
-        result = filterActionsByState(filteredActions);
-    } catch (Error){console.error(Error.message)}
+        getLogger().debugDetail("Filtered actions by ID " + (filteredActions?filteredActions.length:0),
+            "contextActions", "findActionById");
+
+        if (metadataOnly) {
+            result = filteredActions.map(action => {
+                return {
+                    id: action.id,
+                    name : action.name,
+                    target : action.target,
+                    category : action.category,
+                    onClick : null,
+                    hasUI : contextActions.isUIAction(action),
+                    label : action.label
+                }
+            });
+        } else {
+            result = filterActionsByState(filteredActions);
+        }
+
+        getLogger().debugDetail("Filtered actions by state " + (result?result.length:0),
+            "contextActions", "findActionById");
+    } catch (Error){
+        getLogger().error(Error.toString(), "contextActions", "findActionById");
+    }
 
     if (result.length > 0) {
         return result[0];
@@ -315,22 +389,37 @@ export function findActionById(actionId: string) : contextActions.IExecutableAct
  *
  * If several actions matches by ID, any one will be executed.
  *
+ * Returns nothing for short-running actions and promise for long-running actions with any UI.
+ *
  * @param actionId
  */
-export function executeAction(actionId: string) : void {
+export function executeAction(actionId: string) : void | Promise<void> {
 
     getLogger().debug("Executing action " + actionId, "contextActions", "executeAction");
     let action = findActionById(actionId);
 
-    getLogger().debugDetail("Action found: " + action?"true":"false",
+    getLogger().debugDetail("Action found: " + (action?"true":"false"),
         "contextActions", "executeAction");
 
-    if (action) {
+    if (action && action.hasUI) {
+
+        const onClickPromise = (action.onClick() as Promise<void>);
+
+        getLogger().debugDetail("Got onClick promise: " +
+            ((onClickPromise && onClickPromise.then) ? "true" : "false"),
+            "contextActions", "executeAction");
+
+        return onClickPromise.then(()=>{
+            getLogger().debugDetail("Finished executing action: " + actionId,
+                "contextActions", "executeAction");
+        });
+
+    } else if (action) {
+
         action.onClick();
+        getLogger().debugDetail("Finished executing action: " + actionId,
+            "contextActions", "executeAction");
     }
-
-    getLogger().debugDetail("Finished executing action: " + actionId,
-        "contextActions", "executeAction");
 }
 
 /**

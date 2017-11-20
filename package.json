@@ -1,6 +1,6 @@
 {
   "name": "raml-actions",
-  "version": "0.0.22",
+  "version": "0.0.23",
   "main": "dist/index.js",
   "scripts": {
     "build": "rimraf dist && tsc",
@@ -11,8 +11,10 @@
   },
   "dependencies": {
     "underscore": "^1.8.3",
-    "raml-1-parser": "1.1.36",
-    "raml-suggestions": "0.0.42"
+    "raml-1-parser": "1.1.37",
+    "raml-suggestions": "0.0.43",
+    "raml-outline": "0.0.15",
+    "know-your-http-well": "~0.2.0"
   },
   "typings":"dist/index.d.ts",
   "repository": {
@@ -29,7 +31,7 @@
     "@types/chai": "^4.0.1",
     "@types/mocha": "^2.2.41",
     "@types/underscore": "^1.8.3",
-    "atom-ui-lib": "0.0.17",
+    "atom-ui-lib": "0.0.18",
     "typescript": "^2.5.2",
     "dev-env-installer":"0.0.14",
     "rimraf":"2.6.2"
