@@ -191,13 +191,13 @@ export interface IASTModifier {
      * Deletes node
      * @param node
      */
-    deleteNode(node: hl.IParseResult);
+    deleteNode(node: hl.IParseResult):void;
 
     /**
      * Updates text for the give node.
      * @param node
      */
-    updateText(node: ll.ILowLevelASTNode);
+    updateText(node: ll.ILowLevelASTNode):void;
 }
 
 /**
