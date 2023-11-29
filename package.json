@@ -11,8 +11,8 @@
   },
   "dependencies": {
     "underscore": "^1.8.3",
-    "raml-1-parser": "1.1.41",
-    "raml-suggestions": "0.0.47",
+    "raml-1-parser": "1.1.62",
+    "raml-suggestions": "0.0.53",
     "raml-outline": "0.0.16",
     "know-your-http-well": "~0.2.0"
   },
